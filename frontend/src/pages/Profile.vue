@@ -31,19 +31,55 @@
         <el-button :icon="LogIn" @click="auth.login()">演示登录</el-button>
       </div>
     </section>
+
+    <section v-if="isStudent" class="panel feedback-panel">
+      <div class="section-header">
+        <h2>教练反馈</h2>
+        <span class="section-subtitle">共 {{ completedBookings.length }} 条已完成课程</span>
+      </div>
+
+      <section v-if="completedBookings.length" class="list-stack">
+        <article v-for="booking in completedBookings" :key="booking.id" class="feedback-row">
+          <div class="feedback-info">
+            <h3>{{ booking.course?.title || `课程 #${booking.courseId}` }}</h3>
+            <p class="feedback-meta">
+              <span>{{ formatDateTime(booking.scheduleTime) }}</span>
+              <span v-if="booking.course?.coach" class="coach-info">
+                教练：{{ booking.course.coach.nickname }}
+              </span>
+            </p>
+            <div v-if="booking.coachFeedback" class="feedback-content">
+              <p>{{ booking.coachFeedback }}</p>
+            </div>
+            <div v-else class="feedback-empty">
+              <p>教练暂未填写训练总结</p>
+            </div>
+          </div>
+          <BookingStatusBadge :status="booking.status" />
+        </article>
+      </section>
+      <EmptyState v-else title="暂无已完成课程" description="完成课程后，教练的训练总结会展示在这里" />
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, watchEffect } from 'vue'
+import { reactive, watchEffect, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { LogIn, Save } from '@lucide/vue'
 import AvatarUploader from '@/components/common/AvatarUploader.vue'
+import BookingStatusBadge from '@/components/common/BookingStatusBadge.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import { UserRoleLabel } from '@/constants/user'
+import { BookingStatus } from '@/constants/booking'
 import { useAuthStore } from '@/stores/authStore'
+import { useBookingStore } from '@/stores/bookingStore'
 import { userApi } from '@/api/user'
+import { formatDateTime } from '@/utils/dateFormat'
 
 const auth = useAuthStore()
+const bookingStore = useBookingStore()
+
 const form = reactive({
   nickname: '',
   phone: '',
@@ -52,6 +88,14 @@ const form = reactive({
   gender: '',
   height: 168,
   weight: 58
+})
+
+const isStudent = computed(() => auth.role === 'student')
+
+const completedBookings = computed(() => {
+  return bookingStore.list
+    .filter(item => item.status === BookingStatus.COMPLETED)
+    .sort((a, b) => new Date(b.scheduleTime).getTime() - new Date(a.scheduleTime).getTime())
 })
 
 watchEffect(() => {
@@ -75,6 +119,10 @@ async function save() {
   }
   ElMessage.success('个人资料已保存')
 }
+
+onMounted(() => {
+  bookingStore.loadBookings()
+})
 </script>
 
 <style scoped>
@@ -82,12 +130,106 @@ async function save() {
   display: grid;
   gap: 24px;
   max-width: 900px;
+  margin-bottom: 24px;
+}
+
+.feedback-panel {
+  max-width: 900px;
 }
 
 .profile-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 18px;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+}
+
+.feedback-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.feedback-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.feedback-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.feedback-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.feedback-meta {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  display: flex;
+  gap: 16px;
+}
+
+.coach-info {
+  color: var(--el-text-color-regular);
+}
+
+.feedback-content {
+  padding: 12px 14px;
+  background: var(--el-fill-color-light);
+  border-radius: 8px;
+  border-left: 3px solid var(--el-color-primary);
+}
+
+.feedback-content p {
+  margin: 0;
+  line-height: 1.7;
+  color: var(--el-text-color-regular);
+  white-space: pre-wrap;
+}
+
+.feedback-empty {
+  padding: 12px 14px;
+  background: var(--el-fill-color-lighter);
+  border-radius: 8px;
+}
+
+.feedback-empty p {
+  margin: 0;
+  color: var(--el-text-color-placeholder);
+  font-size: 13px;
+}
+
+.list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 @media (max-width: 620px) {

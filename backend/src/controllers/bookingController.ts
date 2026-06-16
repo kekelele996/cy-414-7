@@ -2,7 +2,7 @@ import type { Response } from 'express'
 import { BookingStatus } from '../constants/booking'
 import { ErrorCodes } from '../constants/errorCodes'
 import { UserRole } from '../constants/user'
-import { bookingCreateSchema } from '../models/Booking'
+import { bookingCreateSchema, coachFeedbackSchema } from '../models/Booking'
 import { bookingService } from '../services/bookingService'
 import { AppError } from '../utils/AppError'
 import { logger } from '../utils/logger'
@@ -41,6 +41,15 @@ export const bookingController = {
 
   async cancel(req: AuthedRequest, res: Response) {
     res.json(await bookingService.cancel(Number(req.params.id), req.user?.id || 0, req.user?.role || UserRole.STUDENT))
+  },
+
+  async updateFeedback(req: AuthedRequest, res: Response) {
+    const role = req.user?.role || UserRole.COACH
+    if (![UserRole.COACH, UserRole.ADMIN].includes(role as any)) {
+      throw new AppError(`Booking[id=${req.params.id}] feedback failed: role invalid role=${role}`, 403, ErrorCodes.BOOKING_STATUS_COMPLETED_LOCKED, 'Booking', 'status', role)
+    }
+    const payload = coachFeedbackSchema.parse(req.body)
+    res.json(await bookingService.updateFeedback(Number(req.params.id), req.user?.id || 0, role, payload.coachFeedback))
   }
 }
 

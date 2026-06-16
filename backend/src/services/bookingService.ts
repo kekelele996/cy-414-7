@@ -16,6 +16,7 @@ function toBookingDto(booking: any) {
     scheduleTime: booking.scheduleTime,
     status: booking.status,
     note: booking.note,
+    coachFeedback: booking.coachFeedback,
     createdAt: booking.createdAt,
     course: booking.course
       ? {
@@ -140,6 +141,23 @@ export const bookingService = {
     assertTransition(booking, BookingStatus.CANCELLED, role)
     const updated = await prisma.booking.update({ where: { id }, data: { status: BookingStatus.CANCELLED }, include: { course: { include: { coach: true } } } })
     logger.info('BOOKING_CANCEL_SUCCESS', { id })
+    return toBookingDto(updated)
+  },
+
+  async updateFeedback(id: number, coachId: number, role: string, feedback: string) {
+    logger.info('BOOKING_FEEDBACK_START', { id })
+    const booking = await prisma.booking.findUnique({ where: { id }, include: { course: true } })
+    if (!booking) {
+      throw new AppError(`Booking[id=${id}] feedback failed: id not found role=${role}`, 404, ErrorCodes.BOOKING_NOT_FOUND, 'Booking', 'id', role)
+    }
+    if (role === UserRole.COACH && booking.course.coachId !== coachId) {
+      throw new AppError(`Booking[id=${id}] feedback failed: coach not match role=${role}`, 403, ErrorCodes.COURSE_COACH_REQUIRED, 'Booking', 'course.coach_id', role)
+    }
+    if (booking.status !== BookingStatus.COMPLETED) {
+      throw new AppError(`Booking[id=${id}] feedback failed: status not completed role=${role}`, 409, ErrorCodes.BOOKING_TRANSITION_INVALID, 'Booking', 'status', role)
+    }
+    const updated = await prisma.booking.update({ where: { id }, data: { coachFeedback: feedback }, include: { course: { include: { coach: true } } } })
+    logger.info('BOOKING_FEEDBACK_SUCCESS', { id })
     return toBookingDto(updated)
   }
 }

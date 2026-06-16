@@ -19,6 +19,9 @@ export const bookingApi = {
   },
   cancel(id: number) {
     return request.patch<unknown, Booking>(`/bookings/${id}/cancel`)
+  },
+  updateFeedback(id: number, coachFeedback: string) {
+    return request.patch<unknown, Booking>(`/bookings/${id}/feedback`, { coachFeedback })
   }
 }
 

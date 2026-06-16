@@ -14,3 +14,4 @@ bookingRoutes.post('/bookings', auth, roleCheck([UserRole.STUDENT, UserRole.ADMI
 bookingRoutes.patch('/bookings/:id/confirm', auth, roleCheck([UserRole.COACH, UserRole.ADMIN]), bookingRateLimiter, asyncHandler(bookingController.confirm))
 bookingRoutes.patch('/bookings/:id/complete', auth, roleCheck([UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN]), bookingRateLimiter, asyncHandler(bookingController.complete))
 bookingRoutes.patch('/bookings/:id/cancel', auth, roleCheck([UserRole.STUDENT, UserRole.COACH, UserRole.ADMIN]), bookingRateLimiter, asyncHandler(bookingController.cancel))
+bookingRoutes.patch('/bookings/:id/feedback', auth, roleCheck([UserRole.COACH, UserRole.ADMIN]), bookingRateLimiter, asyncHandler(bookingController.updateFeedback))

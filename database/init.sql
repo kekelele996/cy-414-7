@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   schedule_time DATETIME NOT NULL,
   status ENUM('pending', 'confirmed', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
   note VARCHAR(500),
+  coach_feedback TEXT,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_bookings_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_bookings_course FOREIGN KEY (course_id) REFERENCES courses(id)

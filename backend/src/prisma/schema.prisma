@@ -63,15 +63,16 @@ model Course {
 }
 
 model Booking {
-  id           Int           @id @default(autoincrement())
-  userId       Int           @map("user_id")
-  courseId     Int           @map("course_id")
-  scheduleTime DateTime      @map("schedule_time")
-  status       BookingStatus @default(pending)
-  note         String?       @db.VarChar(500)
-  createdAt    DateTime      @default(now()) @map("created_at")
-  user         User          @relation(fields: [userId], references: [id])
-  course       Course        @relation(fields: [courseId], references: [id])
+  id             Int           @id @default(autoincrement())
+  userId         Int           @map("user_id")
+  courseId       Int           @map("course_id")
+  scheduleTime   DateTime      @map("schedule_time")
+  status         BookingStatus @default(pending)
+  note           String?       @db.VarChar(500)
+  coachFeedback  String?       @map("coach_feedback") @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  user           User          @relation(fields: [userId], references: [id])
+  course         Course        @relation(fields: [courseId], references: [id])
 
   @@index([userId])
   @@index([courseId])

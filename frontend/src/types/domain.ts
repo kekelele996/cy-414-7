@@ -35,6 +35,7 @@ export interface Booking {
   scheduleTime: string
   status: BookingStatusValue
   note?: string | null
+  coachFeedback?: string | null
   course?: Course
 }
 

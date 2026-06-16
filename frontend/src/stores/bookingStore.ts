@@ -24,6 +24,25 @@ const makeDemoBookings = (): Booking[] => {
       status: BookingStatus.PENDING,
       note: '想做体态评估',
       course: courses[1]
+    },
+    {
+      id: 3,
+      userId: 1,
+      courseId: 1,
+      scheduleTime: '2026-06-10T08:00:00+08:00',
+      status: BookingStatus.COMPLETED,
+      note: '上次训练状态不错',
+      coachFeedback: '本次训练重点是下肢力量，完成了3组深蹲训练，每组12次。动作规范度良好，建议下次增加重量。下次训练计划：核心力量+有氧。',
+      course: courses[0]
+    },
+    {
+      id: 4,
+      userId: 1,
+      courseId: 2,
+      scheduleTime: '2026-06-12T19:30:00+08:00',
+      status: BookingStatus.COMPLETED,
+      note: '',
+      course: courses[1]
     }
   ]
 }
@@ -83,6 +102,17 @@ export const useBookingStore = defineStore('bookings', {
       }
       this.list = this.list.map(item => (item.id === id ? { ...item, status } : item))
       this.upcoming = this.list.filter(item => activeBookingStatuses.includes(item.status))
+    },
+    async updateFeedback(id: number, feedback: string) {
+      try {
+        const updated = await bookingApi.updateFeedback(id, feedback)
+        this.list = this.list.map(item => (item.id === id ? updated : item))
+      } catch {
+        this.list = this.list.map(item => (item.id === id ? { ...item, coachFeedback: feedback } : item))
+      }
+    },
+    getCompletedBookings() {
+      return this.list.filter(item => item.status === BookingStatus.COMPLETED)
     }
   }
 })

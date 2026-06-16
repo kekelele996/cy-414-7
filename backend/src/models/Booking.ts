@@ -7,6 +7,10 @@ export const bookingCreateSchema = z.object({
   note: z.string().max(500).optional()
 })
 
+export const coachFeedbackSchema = z.object({
+  coachFeedback: z.string().max(2000)
+})
+
 export const bookingStatusSchema = z.enum([
   BookingStatus.PENDING,
   BookingStatus.CONFIRMED,
